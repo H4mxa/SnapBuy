@@ -6,13 +6,11 @@ import { UsersModule } from './users/users.module';
 import { VideosModule } from './videos/videos.module';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
-import { TestModule } from './test-controller/test.module';
 
 @Module({
   imports: [
     AuthModule,
     UsersModule,
-    TestModule,
     VideosModule,
     ConfigModule.forRoot({
       validationSchema: Joi.object({

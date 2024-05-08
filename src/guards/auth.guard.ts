@@ -6,16 +6,19 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { BlacklistService } from 'src/shared/blacklist.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly blacklistService: BlacklistService,
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
-
-    if (!token) {
+    if (!token || this.blacklistService.isTokenBlacklisted(token)) {
       throw new UnauthorizedException();
     }
     try {

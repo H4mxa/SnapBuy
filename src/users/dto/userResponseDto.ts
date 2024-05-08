@@ -2,14 +2,17 @@ import { User } from '@prisma/client';
 import { Exclude } from 'class-transformer';
 
 export class UserResponseDto implements User {
+  role;
+
+  @Exclude()
   id: number;
+  @Exclude()
   email: string;
+  @Exclude()
   name: string;
 
   @Exclude()
   addressId: number;
-  @Exclude()
-  role;
 
   @Exclude()
   address;

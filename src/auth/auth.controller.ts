@@ -8,12 +8,15 @@ import {
   Get,
   Request,
   ValidationPipe,
+  Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
 import { RegisterDto } from './dto/Register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from 'src/enums/role.enum';
+import { AuthGuard } from 'src/guards/auth.guard';
+import { Roles } from 'src/decorators/roles.decorator';
+import { RoleGuard } from 'src/guards/role.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -32,20 +35,24 @@ export class AuthController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Post('login/admin')
-  logInAdmin(@Body(ValidationPipe) loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
-
-  @HttpCode(HttpStatus.OK)
   @Post('login')
   logIn(@Body(ValidationPipe) loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('logout')
   @UseGuards(AuthGuard)
+  logout(@Headers('authorization') authToken: string) {
+    return this.authService.logout(authToken);
+  }
+
   @Get('profile')
+  @Roles(Role.ADMIN)
+  @UseGuards(AuthGuard, RoleGuard)
   getProfile(@Request() req) {
-    return req.user;
+    return {
+      user: 'success',
+    };
   }
 }

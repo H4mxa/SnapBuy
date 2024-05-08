@@ -14,13 +14,16 @@ import { PrismaError } from 'src/utils/prismaError';
 import { UserNotFoundException } from 'src/users/exceptions/userNotFound.exception';
 import { UserResponseDto } from 'src/users/dto/userResponseDto';
 import { plainToClass } from 'class-transformer';
-import { CreateUserDto } from 'src/users/dto/createUser.dto';
+import { CreateHttpResponse } from 'src/utils/createResponse';
+import { HTTP_RESPONSE_STRINGS } from 'src/utils/httpResponseStrings';
+import { BlacklistService } from 'src/shared/blacklist.service';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly jwtService: JwtService,
+    private readonly blacklistService: BlacklistService,
   ) {}
 
   async registerUser(
@@ -29,13 +32,18 @@ export class AuthService {
   ): Promise<Partial<RegisterDto>> {
     const hashedPassword = await bcrypt.hash(registrationData.password, 10);
     try {
-      const createdUser = await this.usersService.create({
+      await this.usersService.create({
         ...registrationData,
         password: hashedPassword,
         role,
       });
 
-      return plainToClass(CreateUserDto, createdUser);
+      // const filteredResponse = plainToClass(RegisterResponseDto, createdUser);
+
+      return CreateHttpResponse({
+        success: true,
+        message: HTTP_RESPONSE_STRINGS.USER_CREATED,
+      });
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -70,7 +78,17 @@ export class AuthService {
       access_token,
     };
 
-    return plainToClass(UserResponseDto, response);
+    const filteredResponse = plainToClass(UserResponseDto, response);
+    return CreateHttpResponse({
+      data: filteredResponse,
+      message: HTTP_RESPONSE_STRINGS.USER_CREATED,
+      success: true,
+    });
+  }
+
+  async logout(authToken: string) {
+    const token = authToken.split(' ')[1];
+    this.blacklistService.addToBlacklist(token);
   }
 
   private async verifyPassword(
