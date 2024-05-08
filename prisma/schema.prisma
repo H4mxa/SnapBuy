@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+enum Role {
+    ADMIN
+    USER
+    GUEST
+    MODERATOR
+}
+
+model User {
+    id        Int      @id @default(autoincrement())
+    email     String   @unique
+    name      String
+    password  String
+    role      Role
+    address   Address? @relation(fields: [addressId], references: [id])
+    addressId Int?     @unique
+    posts     Post[]
+    likes     Like[]
+    carts     Cart[]
+    orders    Order[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Address {
+    id      Int    @id @default(autoincrement())
+    street  String
+    city    String
+    country String
+    user    User?
+}
+
+model Post {
+    id            Int        @id @default(autoincrement())
+    title         String
+    paragraphs    String
+    author        User       @relation(fields: [authorId], references: [id])
+    authorId      Int
+    categories    Category[]
+    scheduledDate DateTime?  @default(now())
+
+    @@index([authorId])
+}
+
+model Category {
+    id        Int       @id @default(autoincrement())
+    name      String
+    posts     Post[]
+    deletedAt DateTime? @default(now())
+}
+
+model Video {
+    id       Int    @id @default(autoincrement())
+    filename String
+    path     String
+    mimetype String
+    Dress    Dress? @relation(fields: [dressId], references: [id])
+    dressId  Int?
+}
+
+model Dress {
+    id          Int         @id @default(autoincrement())
+    name        String
+    description String
+    videos      Video[]
+    pictures    Json
+    price       Float
+    createdAt   DateTime    @default(now())
+    updatedAt   DateTime    @updatedAt
+    Like        Like[]
+    CartItem    CartItem[]
+    OrderItem   OrderItem[]
+}
+
+model Like {
+    id      Int   @id @default(autoincrement())
+    user    User  @relation(fields: [userId], references: [id])
+    userId  Int
+    dress   Dress @relation(fields: [dressId], references: [id])
+    dressId Int
+}
+
+model Cart {
+    id        Int        @id @default(autoincrement())
+    user      User       @relation(fields: [userId], references: [id])
+    userId    Int
+    items     CartItem[]
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+    id       Int   @id @default(autoincrement())
+    cart     Cart  @relation(fields: [cartId], references: [id])
+    cartId   Int
+    dress    Dress @relation(fields: [dressId], references: [id])
+    dressId  Int
+    quantity Int
+}
+
+model Order {
+    id        Int         @id @default(autoincrement())
+    user      User        @relation(fields: [userId], references: [id])
+    userId    Int
+    items     OrderItem[]
+    status    String
+    createdAt DateTime    @default(now())
+    updatedAt DateTime    @updatedAt
+}
+
+model OrderItem {
+    id       Int   @id @default(autoincrement())
+    order    Order @relation(fields: [orderId], references: [id])
+    orderId  Int
+    dress    Dress @relation(fields: [dressId], references: [id])
+    dressId  Int
+    quantity Int
+}
