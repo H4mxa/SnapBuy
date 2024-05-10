@@ -5,11 +5,13 @@ export class UserResponseDto implements User {
   role;
 
   @Exclude()
+  hashedRT: string;
+  @Exclude()
   id: number;
   @Exclude()
   email: string;
   @Exclude()
-  name: string;
+  username: string;
 
   @Exclude()
   addressId: number;

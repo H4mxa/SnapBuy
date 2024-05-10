@@ -5,54 +5,63 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Get,
-  Request,
-  ValidationPipe,
-  Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/Register.dto';
-import { LoginDto } from './dto/login.dto';
-import { Role } from 'src/enums/role.enum';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { Roles } from 'src/decorators/roles.decorator';
-import { RoleGuard } from 'src/guards/role.guard';
+import { Public, getCurrentUser, getCurrentUserId } from './decorators';
+import { AuthSigninDto, AuthSignupDto } from './dto';
+import { Tokens } from './types';
+import { Role } from './enums/role.enum';
+import { Roles } from './decorators/roles.decorator';
+import { RtGuard } from './guards';
+import { RoleGuard } from './guards/role.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @Public()
+  @Post('signup')
   @HttpCode(HttpStatus.CREATED)
-  @Post('/register/admin')
-  registerAdmin(@Body(ValidationPipe) registerDto: RegisterDto) {
-    return this.authService.registerUser(registerDto, Role.ADMIN);
+  signup(@Body() dto: AuthSignupDto): Promise<Tokens> {
+    console.log('dto: ', dto);
+    return this.authService.signup(dto, Role.GUEST);
   }
 
-  @HttpCode(HttpStatus.CREATED)
-  @Post('/register')
-  registerUser(@Body(ValidationPipe) registerDto: RegisterDto) {
-    return this.authService.registerUser(registerDto, Role.USER);
-  }
-
+  @Public()
+  @Post('signin')
   @HttpCode(HttpStatus.OK)
-  @Post('login')
-  logIn(@Body(ValidationPipe) loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  signIn(@Body() dto: AuthSigninDto): Promise<Tokens> {
+    return this.authService.signin(dto);
   }
 
-  @HttpCode(HttpStatus.NO_CONTENT)
   @Post('logout')
-  @UseGuards(AuthGuard)
-  logout(@Headers('authorization') authToken: string) {
-    return this.authService.logout(authToken);
+  @HttpCode(HttpStatus.NO_CONTENT)
+  // @Roles(Role.ADMIN)
+  // @UseGuards(RoleGuard)
+  logout(@getCurrentUserId() userId: number) {
+    return this.authService.logout(userId);
   }
 
-  @Get('profile')
-  @Roles(Role.ADMIN)
-  @UseGuards(AuthGuard, RoleGuard)
-  getProfile(@Request() req) {
-    return {
-      user: 'success',
-    };
+  @Public()
+  @UseGuards(RtGuard)
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  refreshTokens(
+    @getCurrentUserId() userId: number,
+    @getCurrentUser('refreshToken') refreshToken: string,
+  ) {
+    console.log('my referesh TOken: ', refreshToken);
+    console.log('my userId userId: ', userId);
+
+    return this.authService.refreshTokens(userId, refreshToken);
   }
+
+  // @Get('profile')
+  // @Roles(Role.ADMIN)
+  // @UseGuards(AuthGuard, RoleGuard)
+  // getProfile(@Request() req) {
+  //   return {
+  //     user: 'success',
+  //   };
+  // }
 }

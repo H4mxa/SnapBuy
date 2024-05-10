@@ -4,15 +4,16 @@ import { Exclude } from 'class-transformer';
 
 export class CreateUserDto {
   email: string;
-  name: string;
+  username: string;
   password: string;
   address?: AddressDto;
+  hashedRT?: string;
   role: Role;
 }
 
 export class RegisterResponseDto {
   email: string;
-  name: string;
+  username: string;
   role: Role;
 
   @Exclude()

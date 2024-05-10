@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { VideosModule } from './videos/videos.module';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from 'joi';
+import { APP_GUARD } from '@nestjs/core';
+import { AtGuard } from './auth/guards';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -13,14 +14,26 @@ import * as Joi from 'joi';
     UsersModule,
     VideosModule,
     ConfigModule.forRoot({
+      isGlobal: true,
       validationSchema: Joi.object({
-        JWT_SECRET: Joi.string().required(),
-        JWT_EXPIRATION_TIME: Joi.string().required(),
         UPLOADED_FILES_DESTINATION: Joi.string().required(),
+        RATE_LIMIT_TIME_TO_LIVE: Joi.number().required(),
+        RATE_LIMIT_MAX_NUMBER_REQUEST: Joi.number().required(),
       }),
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: parseInt(process.env.RATE_LIMIT_TIME_TO_LIVE),
+        limit: parseInt(process.env.RATE_LIMIT_MAX_NUMBER_REQUEST),
+      },
+    ]),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    { provide: APP_GUARD, useClass: AtGuard },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

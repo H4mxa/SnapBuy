@@ -50,4 +50,31 @@ export class UsersService {
       },
     });
   }
+
+  async updateMany(userId) {
+    await this.prisma.user.updateMany({
+      where: {
+        id: userId,
+        hashedRT: {
+          not: null,
+        },
+      },
+      data: {
+        hashedRT: null,
+      },
+    });
+  }
+
+  async updateRefreshTokenHash({
+    userId,
+    hash,
+  }: {
+    userId: number;
+    hash: string;
+  }) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { hashedRT: hash },
+    });
+  }
 }

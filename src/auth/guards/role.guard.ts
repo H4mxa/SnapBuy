@@ -1,13 +1,14 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { ROLE_KEY } from 'src/decorators/roles.decorator';
-import { Role } from 'src/enums/role.enum';
 import { AccessContorlService } from 'src/shared/access-control.service';
+import { ROLE_KEY } from '../decorators/roles.decorator';
+import { Role } from '../enums/role.enum';
 
 export class TokenDto {
-  id: number;
+  sub: number;
   role: Role;
+  username: string;
 }
 
 @Injectable()
@@ -26,6 +27,7 @@ export class RoleGuard implements CanActivate {
     ]);
 
     const request = context.switchToHttp().getRequest();
+
     const token = request['token'] as TokenDto;
 
     for (let role of requiredRoles) {
