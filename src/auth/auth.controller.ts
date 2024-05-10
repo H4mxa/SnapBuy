@@ -23,7 +23,6 @@ export class AuthController {
   @Post('signup')
   @HttpCode(HttpStatus.CREATED)
   signup(@Body() dto: AuthSignupDto): Promise<Tokens> {
-    console.log('dto: ', dto);
     return this.authService.signup(dto, Role.GUEST);
   }
 
@@ -50,9 +49,6 @@ export class AuthController {
     @getCurrentUserId() userId: number,
     @getCurrentUser('refreshToken') refreshToken: string,
   ) {
-    console.log('my referesh TOken: ', refreshToken);
-    console.log('my userId userId: ', userId);
-
     return this.authService.refreshTokens(userId, refreshToken);
   }
 

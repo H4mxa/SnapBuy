@@ -79,8 +79,6 @@ export class AuthService {
 
   // `RefreshToken` Route
   async refreshTokens(userId: number, refreshToken: string) {
-    console.log('userId: ', userId);
-
     const user = await this.usersService.getById(userId);
 
     if (!user || !user.hashedRT) throw new ForbiddenException('Access Denied');

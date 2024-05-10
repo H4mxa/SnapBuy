@@ -27,9 +27,6 @@ function LocalFilesInterceptor(
         }),
         fileFilter: options.fileFilter,
       };
-
-      console.log('fieldNameL: ', options);
-
       this.fileInterceptor = new (FileInterceptor(
         options.fieldName,
         multerOptions,
